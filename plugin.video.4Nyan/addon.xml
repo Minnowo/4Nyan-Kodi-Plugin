@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<addon id="plugin.video.4Nyan"
+version="2.4.0"
+name="4Nyan"
+provider-name="AliceNyaa">
+<requires>
+  <import addon="xbmc.python" version="3.0.0"/>
+</requires>
+<extension point="xbmc.python.pluginsource" library="main.py">
+  <provides>video</provides>
+</extension>
+<extension point="xbmc.addon.metadata">
+  <summary lang="en">Kodi Video Plugin for the 4Nyan API</summary>
+  <description lang="en_GB">Kodi Video Plugin for the 4Nyan API. See https://github.com/Minnowo/4Nyan</description>
+  <disclaimer lang="en_GB">You must host the 4Nyan API yourself.</disclaimer>
+  <assets>
+    <icon>icon.png</icon>
+    <fanart>fanart.jpg</fanart>
+  </assets>
+  <news>Updated with latest artwork metadata</news>
+</extension>
+</addon>
