@@ -227,7 +227,7 @@ def list_videos(category):
         v_url   = v["static_url"][0]
         v_thumb = v["static_url"][1]
 
-        if len(v['static_url']) == 3:
+        if len(v['static_url']) > 2:
             v_url = v['static_url'][2]
 
         list_item = xbmcgui.ListItem(label=v['hash'])
