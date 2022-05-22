@@ -226,12 +226,20 @@ def list_videos(category):
 
         v_url   = v["static_url"][0]
         v_thumb = v["static_url"][1]
+        s_url   = None
 
         if len(v['static_url']) > 2:
             v_url = v['static_url'][2]
 
+        if len(v['static_url']) == 5:
+            s_url = v['static_url'][4]
+
         list_item = xbmcgui.ListItem(label=v['hash'])
 
+        # li.setInfo(type='image', infoLabels={'Title': pic})
+
+
+        # list_item.setInfo('image', {'title': filename,
         list_item.setInfo('video', {'title': filename,
                                     'genre': category["category"],
                                     'mediatype': 'video'})
@@ -239,14 +247,24 @@ def list_videos(category):
         # Set graphics (thumbnail, fanart, banner, poster, landscape etc.) for the list item.
         # Here we use the same image for all items for simplicity's sake.
         # In a real-life plugin you need to set each image accordingly.
-        # list_item.setArt({'thumb': video['thumb'], 'icon': video['thumb'], 'fanart': video['thumb']})
+        list_item.setArt({
+            'thumb': v_thumb, 
+            'icon': v_thumb, 
+            'fanart': v_thumb
+            })
 
         # Set 'IsPlayable' property to 'true'.
         # This is mandatory for playable items!
         list_item.setProperty('IsPlayable', 'true')
+        
         # Create a URL for a plugin recursive call.
         # Example: plugin://plugin.video.example/?action=play&video=http://www.vidsplay.com/wp-content/uploads/2017/04/crab.mp4
-        url = get_url(action='play', video=v_url)
+        
+        if s_url is None:
+            url = get_url(action='play', video=v_url)
+        else:
+            url = get_url(action='play', video=v_url,subs=s_url)
+
         # Add the list item to a virtual Kodi folder.
         # is_folder = False means that this item won't open any sub-list.
         is_folder = False
@@ -259,15 +277,24 @@ def list_videos(category):
     xbmcplugin.endOfDirectory(_HANDLE)
 
 
-def play_video(path):
+def play_video(**kwargs):
     """
     Play a video by the provided path.
 
     :param path: Fully-qualified video URL
     :type path: str
     """
+
+    path = kwargs['video']
+    subs = kwargs.get('subs', None)
+
+    LOGGER.info("Trying to play '{}'".format(path))
     # Create a playable item with a path to play.
     play_item = xbmcgui.ListItem(path=path)
+
+    if subs:
+        play_item.setSubtitles([subs])
+
     # Pass the item to the Kodi player.
     xbmcplugin.setResolvedUrl(_HANDLE, True, listitem=play_item)
 
@@ -296,8 +323,8 @@ def router(paramstring):
             # Display the list of videos in a provided category.
             list_videos(params)
         elif params['action'] == 'play':
-            # Play a video from a provided URL.
-            play_video(params['video'])
+
+            play_video(**params)
         else:
             # If the provided paramstring does not contain a supported action
             # we raise an exception. This helps to catch coding errors,
