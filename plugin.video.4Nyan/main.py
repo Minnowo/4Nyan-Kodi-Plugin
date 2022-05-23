@@ -224,15 +224,15 @@ def list_videos(category):
                 filename = tag["tag"]
 
 
-        v_url   = v["static_url"][0]
-        v_thumb = v["static_url"][1]
+        v_url   = v["static_url"]['content'][0]
+        v_thumb = v["static_url"]['thumbs'][0]
         s_url   = None
 
-        if len(v['static_url']) > 2:
-            v_url = v['static_url'][2]
+        if len(v['static_url']['subs']) > 0:
+            s_url = v['static_url']['subs'][0]
 
-        if len(v['static_url']) == 5:
-            s_url = v['static_url'][4]
+        if len(v["static_url"]['content']) == 3:
+            v_url = v['static_url']['content'][1]
 
         list_item = xbmcgui.ListItem(label=v['hash'])
 
