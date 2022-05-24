@@ -21,6 +21,8 @@ _HANDLE = int(sys.argv[1])
 TIMEOUT = 5
 VERIFY = True 
 
+IMAGE_4NYAN = "plugin://plugin.image.4NyanI/"
+
 data = None 
 
 with open(os.path.join(os.path.dirname(__file__), "config.json"), "r") as reader:
@@ -95,7 +97,8 @@ def fetch(url, method ="get"):
 
 
 
-def get_url(**kwargs):
+def get_url(url = _URL, **kwargs):
+
     """
     Create a URL for calling the plugin recursively from the given set of keyword arguments.
 
@@ -103,7 +106,7 @@ def get_url(**kwargs):
     :return: plugin call URL
     :rtype: str
     """
-    return '{}?{}'.format(_URL, urlencode(kwargs))
+    return '{}?{}'.format(url, urlencode(kwargs))
 
 
 def get_categories():
@@ -260,7 +263,14 @@ def list_videos(category):
         # Create a URL for a plugin recursive call.
         # Example: plugin://plugin.video.example/?action=play&video=http://www.vidsplay.com/wp-content/uploads/2017/04/crab.mp4
         
-        if s_url is None:
+        _ = _URL
+
+        if filename.endswith(".jpg") or filename.endswith(".png"):
+
+            _ = IMAGE_4NYAN
+            url = get_url(url=_, action='show_image', video=v_url)
+
+        elif s_url is None:
             url = get_url(action='play', video=v_url)
         else:
             url = get_url(action='play', video=v_url,subs=s_url)
