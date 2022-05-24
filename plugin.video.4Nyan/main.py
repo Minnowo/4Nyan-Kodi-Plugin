@@ -273,7 +273,7 @@ def list_videos(category):
         elif s_url is None:
             url = get_url(action='play', video=v_url)
         else:
-            url = get_url(action='play', video=v_url,subs=s_url)
+            url = get_url(url=_, action='play', video=v_url,subs=s_url)
 
         # Add the list item to a virtual Kodi folder.
         # is_folder = False means that this item won't open any sub-list.
