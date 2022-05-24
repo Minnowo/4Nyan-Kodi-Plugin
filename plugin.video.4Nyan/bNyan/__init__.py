@@ -52,13 +52,12 @@ def fetch(url, method ="get"):
     
     except (ConnectionError, Timeout) as exc:
 
-        LOGGER.error(exc.__repr__())
+        LOGGER.error(exc.__repr__(), exc_info=True)
         raise exc
     
     except Exception as exc:
 
-        print("Fatal error occured: " + exc.__repr__())
-        LOGGER.fatal("in get_categories -> requests.requests('GET'...): " + exc.__repr__())
+        LOGGER.fatal("in get_categories -> requests.requests('GET'...): " + exc.__repr__(), exc_info=True)
         raise Exception("Fatal error making a request to {}. {}".format(url, exc))
 
     
@@ -76,7 +75,7 @@ def fetch(url, method ="get"):
         return response.json()
     except Exception as e:
 
-        LOGGER.error("Bad response, cannot decode json {}".format(e))
+        LOGGER.error("Bad response, cannot decode json {}".format(e), exc_info=True)
         raise Exception("An error occured trying to decode the response from {} as json, likely the port or address are invalid. {}".format(url, e))
 
 
