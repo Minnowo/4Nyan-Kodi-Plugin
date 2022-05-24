@@ -1,9 +1,7 @@
 # License: GPL v.3 https://www.gnu.org/copyleft/gpl.html
 
-
 import os.path
 import sys
-import json 
 from urllib.parse import urlencode, parse_qsl
 
 import requests
@@ -11,11 +9,30 @@ from requests.exceptions import Timeout
 
 from . import bn_logging
 
-import xbmcgui
-import xbmcplugin
 import xbmc
+import xbmcgui
+import xbmcaddon
+import xbmcplugin
 
-LOGGER = bn_logging.get_logger("Kodi Plugin Test", os.path.join(os.path.dirname(__file__), "sample-kodi.log"))
+LOGGER = bn_logging.get_logger("Kodi Plugin Test", os.path.join(os.path.dirname(os.path.dirname(__file__)), "4Nyan.log"))
+
+_URL = sys.argv[0]
+_HANDLE = int(sys.argv[1])
+
+ADDON = xbmcaddon.Addon()
+ADDRESS = ADDON.getSetting('ipaddress')
+PORT = ADDON.getSetting('port')
+
+BNYAN_HOST = "http://{}:{}/".format(ADDRESS, PORT)
+BNYAN_API = {
+    "get_categories" : BNYAN_HOST + "search/get_categories",
+    "get_file_tags"  : BNYAN_HOST + "search/get_file_tags",
+    "get_files"      : BNYAN_HOST + "search/get_files",
+    "heartbeat"      : BNYAN_HOST + "heartbeat"
+}
+
+TIMEOUT = 5
+VERIFY = True 
 
 BNYAN_IMAGE_MIME_RANGE = (100, 199) 
 BNYAN_VIDEO_MIME_RANGE = (200, 299)
@@ -25,47 +42,6 @@ CONTENT_TYPE_UNKNOWN = -1
 CONTENT_TYPE_IMAGE = 1
 CONTENT_TYPE_VIDEO = 2
 CONTENT_TYPE_AUDIO = 3
-
-_URL = sys.argv[0]
-_HANDLE = int(sys.argv[1])
-
-TIMEOUT = 5
-VERIFY = True 
-
-data = None 
-
-if not os.path.isfile(os.path.join(os.path.dirname(__file__), "config.json")):
-
-    data = { 'server_ip' : '127.0.0.1', 'port' : 721 }
-
-    LOGGER.error("Config file not found, using default")
-
-else:
-    
-    with open(os.path.join(os.path.dirname(__file__), "config.json"), "r") as reader:
-
-        try:
-            data = json.load(reader)
-
-            if "server_ip" not in data:
-                raise Exception("server id is required")
-
-            if "port" not in data:
-                raise Exception("port is required")
-        
-        except Exception as e:
-            
-            LOGGER.error("Could not load config {}".format(e))
-
-            data = { 'server_ip' : '127.0.0.1', 'port' : 721 }
-
-BNYAN_HOST = "http://{}:{}/".format(data["server_ip"], data['port'])
-BNYAN_API = {
-    "get_categories" : BNYAN_HOST + "search/get_categories",
-    "get_file_tags"  : BNYAN_HOST + "search/get_file_tags",
-    "get_files"      : BNYAN_HOST + "search/get_files"
-}
-
 
 
 def fetch(url, method ="get"):
@@ -77,13 +53,13 @@ def fetch(url, method ="get"):
     except (ConnectionError, Timeout) as exc:
 
         LOGGER.error(exc.__repr__())
-        return []
+        raise exc
     
     except Exception as exc:
 
         print("Fatal error occured: " + exc.__repr__())
         LOGGER.fatal("in get_categories -> requests.requests('GET'...): " + exc.__repr__())
-        return []
+        raise Exception("Fatal error making a request to {}. {}".format(url, exc))
 
     
     status = response.status_code
@@ -96,7 +72,12 @@ def fetch(url, method ="get"):
         LOGGER.info("Request to '{1}' returned unknown status: '{2}'".format(url, status))
         return []
 
-    return response.json()
+    try:
+        return response.json()
+    except Exception as e:
+
+        LOGGER.error("Bad response, cannot decode json {}".format(e))
+        raise Exception("An error occured trying to decode the response from {} as json, likely the port or address are invalid. {}".format(url, e))
 
 
 
@@ -129,7 +110,7 @@ def list_categories():
 
     if not categories:
         LOGGER.error("Could not fetch categories")
-        return 
+        raise Exception("Could not fetch categories. Host {}".format(BNYAN_HOST))
 
     for category in categories:
 
@@ -176,7 +157,7 @@ def list_videos(category):
     if 'content' not in json:
 
         LOGGER.error("Response from {} did not return any content {}".format(url, json))
-        return 
+        raise Exception("Response from {} did not return any content".format(url))
 
     for v in json['content']:
 
@@ -354,7 +335,7 @@ def play_media(**kwargs):
 
     except ValueError:
         LOGGER.error("Value error reading play query {}".format(kwargs))
-        return 
+        raise Exception("Value error reading play query {}".format(kwargs))
 
     LOGGER.info(type)
 
