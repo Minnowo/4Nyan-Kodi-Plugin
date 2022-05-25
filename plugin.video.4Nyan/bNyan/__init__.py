@@ -214,7 +214,9 @@ def list_videos(category):
 
         content_urls = static_urls['content']
         thumb_urls   = static_urls['thumbs']
-        sub_urls     = static_urls['subs']
+
+        # kodi only seems to recognize .srt subtitles 
+        sub_urls     = list(filter(lambda x : x.endswith('.srt'), static_urls['subs']))
         
         content_type = CONTENT_TYPE_UNKNOWN
 
